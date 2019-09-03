@@ -42,6 +42,11 @@
   :group 'helm-fd
   :type 'boolean)
 
+(defcustom helm-fd-relative-paths nil
+  "Use relative path from `default-directory' when displaying files."
+  :group 'helm-fd
+  :type 'boolean)
+
 (defvar helm-fd-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-generic-files-map)
@@ -66,9 +71,13 @@
   (let (non-essential
         (default-directory (helm-default-directory)))
     (cl-loop for i in candidates
-             for abs = (expand-file-name
-                        (helm-aif (file-remote-p default-directory)
-                            (concat it i) i))
+             for abs = (if helm-fd-relative-paths
+                           (helm-aif (file-remote-p default-directory)
+                               (concat it (file-relative-name i))
+                             (file-relative-name i))
+                           (expand-file-name
+                            (helm-aif (file-remote-p default-directory)
+                                (concat it i) i)))
              for type = (car (file-attributes abs))
              for disp = (if (and helm-ff-transformer-show-only-basename
                                  (not (string-match "[.]\\{1,2\\}$" i)))
@@ -129,6 +138,15 @@
           :buffer "*helm fd*"
           :ff-transformer-show-only-basename nil
           :case-fold-search helm-file-name-case-fold-search)))
+
+;;;###autoload
+(defun helm-fd-project ()
+  (interactive)
+  (let ((directory
+         (or (cdr (project-current))
+             (with-current-buffer "*Messages*" default-directory))))
+    (setq helm-fd-relative-paths t)
+    (helm-fd-1 directory)))
 
 ;;;###autoload
 (defun helm-fd (arg)
