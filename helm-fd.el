@@ -79,7 +79,7 @@
     :requires-pattern 3))
 
 (defun helm-fd-transformer (candidates _source)
-  "A helm transformer for CANDIDATES."
+  "A helm transformer to process fd result CANDIDATES."
   (let (non-essential
         (default-directory (helm-default-directory)))
     (cl-loop for i in candidates
@@ -165,8 +165,8 @@ Also note that the displayed paths are relative to project root."
   (interactive)
   (let ((directory
          (or (cdr (project-current))
-             (with-current-buffer "*Messages*" default-directory))))
-    (setq helm-fd-relative-paths t)
+             (with-current-buffer "*Messages*" default-directory)))
+        (helm-fd-relative-paths t))
     (helm-fd-1 directory)))
 
 ;;;###autoload
